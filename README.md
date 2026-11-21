@@ -94,11 +94,3 @@ Resultados com as 12 aulas de IA II e o Claude Sonnet:
 | BM25 | 67,5% | 95,0% | 0,765 |
 | Híbrida (usada no app) | 62,5% | 87,5% | 0,725 |
 
-Em uma amostra de 20 questões, o avaliador automático aprovou todas quanto a gabarito, fidelidade ao material e clareza, e deu nota média de 3,1 de 5 às alternativas erradas. Essa amostra foi medida antes do ajuste no tamanho dos trechos. Como o mesmo modelo gerou e avaliou as questões, o resultado é otimista. Os gráficos e dados brutos estão em [`backend/eval/results`](backend/eval/results).
-
-## Próximos passos
-
-- Repetição espaçada
-- OCR para PDFs escaneados
-- Questões discursivas
-- Visão do professor com os tópicos mais errados pela turma
