@@ -43,7 +43,7 @@ class SyntheticQ(BaseModel):
 
 
 def retrieval_eval(course_id: int, samples: int, k: int) -> None:
-    ids, docs, _ = store.course_chunks(course_id)
+    ids, docs, metas = store.course_chunks(course_id)
     if not ids:
         raise SystemExit("Disciplina sem material.")
     cache = OUT / f"retrieval_set_course{course_id}.json"
@@ -57,7 +57,7 @@ def retrieval_eval(course_id: int, samples: int, k: int) -> None:
                 f"Trecho:\n{docs[i]}\n\nEscreva UMA pergunta que este trecho responde.",
                 SyntheticQ, max_tokens=1000, effort="low",
             )
-            dataset.append({"chunk_id": ids[i], "question": q.question})
+            dataset.append({"chunk_id": ids[i], "doc_id": metas[i]["doc_id"], "page": metas[i]["page"], "question": q.question})
             print(f"  + {q.question}")
         cache.write_text(json.dumps(dataset, ensure_ascii=False, indent=2), encoding="utf-8")
 
@@ -66,8 +66,10 @@ def retrieval_eval(course_id: int, samples: int, k: int) -> None:
     for mode in modes:
         hits1 = hitsk = rr = 0.0
         for item in dataset:
-            ranked = [h.id for h in store.search(course_id, item["question"], k=k, mode=mode)]
-            pos = ranked.index(item["chunk_id"]) + 1 if item["chunk_id"] in ranked else None
+            # acerto por documento e página: continua válido quando os trechos são refeitos
+            ranked = [(h.doc_id, h.page) for h in store.search(course_id, item["question"], k=k, mode=mode)]
+            gold = (item["doc_id"], item["page"])
+            pos = ranked.index(gold) + 1 if gold in ranked else None
             hits1 += pos == 1
             hitsk += pos is not None
             rr += 1 / pos if pos else 0

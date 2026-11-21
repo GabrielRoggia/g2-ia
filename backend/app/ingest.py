@@ -6,13 +6,15 @@ geradas e as respostas possam citar a fonte exata.
 from __future__ import annotations
 
 import re
+from bisect import bisect_right
 from dataclasses import dataclass
 from pathlib import Path
 
 from pypdf import PdfReader
 from pptx import Presentation
 
-from .config import CHUNK_OVERLAP, CHUNK_SIZE
+from .config import CHUNK_OVERLAP_TOKENS, CHUNK_TOKENS
+from .store import store
 
 SUPPORTED = {".pdf", ".pptx", ".txt", ".md"}
 
@@ -59,29 +61,44 @@ def extract_pages(path: Path) -> list[Page]:
     raise ValueError(f"Formato não suportado: {ext}")
 
 
-def split_text(text: str, size: int = CHUNK_SIZE, overlap: int = CHUNK_OVERLAP) -> list[str]:
-    """Divide o texto em janelas de ~size caracteres, cortando preferencialmente
-    em quebras de parágrafo ou fim de frase, com sobreposição entre janelas."""
-    if len(text) <= size:
-        return [text] if text else []
-    pieces, start = [], 0
-    while start < len(text):
-        end = min(start + size, len(text))
-        if end < len(text):
-            window = text[start:end]
+def split_text(text: str, max_tokens: int = CHUNK_TOKENS, overlap: int = CHUNK_OVERLAP_TOKENS) -> list[str]:
+    """Divide o texto em janelas que cabem no modelo de embeddings, medidas em tokens.
+    Corta de preferência em fim de parágrafo ou frase, com sobreposição entre janelas."""
+    if not text:
+        return []
+    offsets = store.tokenizer.encode(text, add_special_tokens=False).offsets
+    total = len(offsets)
+    if total <= max_tokens:
+        return [text]
+
+    pieces: list[str] = []
+    start = 0
+    while start < total:
+        end = min(start + max_tokens, total)
+        if end < total:
+            begin = offsets[start][0]
+            window = text[begin:offsets[end - 1][1]]
             cut = max(window.rfind("\n\n"), window.rfind(". "), window.rfind("\n"))
-            if cut > size * 0.5:
-                end = start + cut + 1
-        piece = text[start:end].strip()
+            if cut > len(window) * 0.5:
+                limit = begin + cut + 1
+                end = max(start + 1, bisect_right([o[1] for o in offsets], limit, start, end))
+            else:
+                # sem fim de frase por perto: ao menos não corta no meio de uma palavra
+                back = end
+                while back > start + max_tokens // 2 and offsets[back][0] == offsets[back - 1][1]:
+                    back -= 1
+                if back > start + max_tokens // 2:
+                    end = back
+        piece = text[offsets[start][0]:offsets[end - 1][1]].strip()
         if piece:
             pieces.append(piece)
-        if end >= len(text):
+        if end >= total:
             break
-        start = max(end - overlap, start + 1)
+        next_start = max(end - overlap, start + 1)
         # começa o próximo trecho no início de uma palavra
-        space = text.find(" ", start, start + 40)
-        if space != -1:
-            start = space + 1
+        while next_start < end and not text[offsets[next_start][0] - 1].isspace():
+            next_start += 1
+        start = next_start
     return pieces
 
 

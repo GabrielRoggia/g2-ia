@@ -47,6 +47,10 @@ def main():
     cid = db.execute("INSERT INTO courses (name, created_at) VALUES (?, ?)", "IA II", db.now())
     chunks = chunk_document(SAMPLE)
     assert len(chunks) >= 5, "o material deveria gerar vários trechos"
+    sizes = [len(store.tokenizer.encode(c.text).ids) for c in chunks]  # inclui os 2 tokens especiais
+    assert max(sizes) <= 128, f"trecho maior que o limite do modelo: {max(sizes)} tokens"
+    text = " ".join(c.text for c in chunks)
+    assert "Kohonen" in text and "Rosenblatt" in text, "a divisão não pode perder o início nem o fim do material"
     did = db.execute("INSERT INTO documents (course_id,name,filename,pages,chunks,created_at) VALUES (?,?,?,?,?,?)",
                      cid, SAMPLE.name, SAMPLE.name, 1, len(chunks), db.now())
     store.add_chunks(cid, did, SAMPLE.name, chunks)

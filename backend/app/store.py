@@ -16,6 +16,7 @@ from typing import Literal
 import chromadb
 from fastembed import TextEmbedding
 from rank_bm25 import BM25Okapi
+from tokenizers import Tokenizer
 
 from .config import CHROMA_DIR, EMBED_MODEL, TOP_K
 
@@ -54,6 +55,7 @@ class VectorStore:
             "materiais", metadata={"hnsw:space": "cosine"}
         )
         self._embedder: TextEmbedding | None = None
+        self._tokenizer: Tokenizer | None = None
         self._bm25_cache: dict[int, tuple[BM25Okapi, list[str], list[str], list[dict]]] = {}
         self._lock = threading.Lock()
 
@@ -63,6 +65,16 @@ class VectorStore:
         if self._embedder is None:
             self._embedder = TextEmbedding(model_name=EMBED_MODEL)
         return self._embedder
+
+    @property
+    def tokenizer(self) -> Tokenizer:
+        """Cópia do tokenizador do modelo, sem truncar, para medir os trechos em tokens."""
+        if self._tokenizer is None:
+            tok = Tokenizer.from_str(self.embedder.model.tokenizer.to_str())
+            tok.no_truncation()
+            tok.no_padding()
+            self._tokenizer = tok
+        return self._tokenizer
 
     def embed(self, texts: list[str]) -> list[list[float]]:
         return [v.tolist() for v in self.embedder.embed(texts)]

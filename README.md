@@ -191,23 +191,26 @@ Troque `--course 1` pelo id da disciplina avaliada.
 
 ### Resultados
 
-Avaliação feita em 21/11/2026 com o material real de IA II (12 PDFs, 558 trechos), usando o Claude Sonnet via Claude Code. Os arquivos brutos estão em `backend/eval/results/`.
+Avaliação feita em 21/11/2026 com o material real de IA II (12 PDFs), usando o Claude Sonnet via Claude Code. Os arquivos brutos estão em `backend/eval/results/`.
 
-**Recuperação (40 perguntas, top 5)**
+**Recuperação (40 perguntas, top 5, acerto por documento e página)**
 
-| Modo de busca | Hit@1 | Hit@5 | MRR |
-|---|---|---|---|
-| Vetorial | 52,5% | 75,0% | 0,613 |
-| BM25 | 67,5% | 92,5% | 0,776 |
-| Híbrida (RRF) | 67,5% | 90,0% | 0,761 |
+O modelo de embeddings lê no máximo 128 tokens. Com trechos de até 900 caracteres, 29% deles passavam desse limite e tinham o final ignorado no vetor. Os trechos passaram a ser medidos em tokens (até 120), e a disciplina foi de 558 para 681 trechos.
+
+| Modo de busca | Hit@1 antes | Hit@1 depois | Hit@5 antes | Hit@5 depois | MRR antes | MRR depois |
+|---|---|---|---|---|---|---|
+| Vetorial | 52,5% | 52,5% | 77,5% | 75,0% | 0,618 | 0,609 |
+| BM25 | 67,5% | 67,5% | 92,5% | 95,0% | 0,776 | 0,765 |
+| Híbrida (RRF, usada no app) | 67,5% | 62,5% | 90,0% | 87,5% | 0,761 | 0,725 |
 
 ![Recuperação por modo de busca](backend/eval/results/retrieval.png)
 
-- A busca só vetorial ficou claramente atrás neste material.
-- BM25 e híbrida ficaram praticamente empatados: a diferença no Hit@5 é de uma pergunta em 40, pequena demais para apontar um vencedor.
-- **Limitação:** as perguntas foram escritas pelo LLM a partir dos próprios trechos, o que tende a repetir palavras do texto e favorecer o BM25. Perguntas reais de alunos podem mudar esse resultado.
+- A correção garante que todo o texto entre no vetor, mas **não melhorou as métricas**. As variações equivalem a no máximo 2 perguntas em 40, pequenas demais para concluir melhora ou piora.
+- A busca só vetorial segue atrás, e o corte dos trechos longos não explica essa diferença.
+- BM25 e híbrida ficaram próximos, sem amostra suficiente para apontar um vencedor.
+- **Limitações:** as perguntas foram escritas pelo LLM a partir dos trechos antigos, o que pode favorecer a divisão anterior e o BM25, por repetir palavras do texto. Perguntas reais de alunos podem mudar esse resultado.
 
-**Qualidade das questões (20 questões, 4 quizzes)**
+**Qualidade das questões (20 questões, 4 quizzes, medida antes da nova divisão em trechos)**
 
 | Critério | Resultado |
 |---|---|

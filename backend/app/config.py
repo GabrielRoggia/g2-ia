@@ -25,6 +25,7 @@ EMBED_MODEL = os.getenv(
 )
 
 # Parâmetros do RAG
-CHUNK_SIZE = int(os.getenv("CHUNK_SIZE", "900"))        # caracteres por trecho
-CHUNK_OVERLAP = int(os.getenv("CHUNK_OVERLAP", "150"))
+# O modelo de embeddings lê no máximo 128 tokens (2 são especiais): acima disso, o final é ignorado.
+CHUNK_TOKENS = int(os.getenv("CHUNK_TOKENS", "120"))
+CHUNK_OVERLAP_TOKENS = int(os.getenv("CHUNK_OVERLAP_TOKENS", "24"))
 TOP_K = int(os.getenv("TOP_K", "6"))
