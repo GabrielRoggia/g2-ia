@@ -76,21 +76,3 @@ Acesse http://localhost:8081, abra **Configurações**, escolha o modelo e cliqu
 2. Em **Quiz**, escolha o modo e a quantidade de questões.
 3. Responda e confira as explicações e as fontes.
 4. No **Painel**, acompanhe o histórico e treine os pontos fracos.
-
-## Testes e avaliação
-
-```powershell
-cd backend
-.\.venv\Scripts\python.exe -m tests.test_flow
-.\.venv\Scripts\python.exe -m eval.run_eval retrieval --course <id> --samples 40
-.\.venv\Scripts\python.exe -m eval.run_eval quiz --course <id> --quizzes 4 --per-quiz 5
-```
-
-Resultados com as 12 aulas de IA II e o Claude Sonnet:
-
-| Busca (40 perguntas) | Hit@1 | Hit@5 | MRR |
-|---|---|---|---|
-| Vetorial | 52,5% | 75,0% | 0,609 |
-| BM25 | 67,5% | 95,0% | 0,765 |
-| Híbrida (usada no app) | 62,5% | 87,5% | 0,725 |
-
