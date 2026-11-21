@@ -7,17 +7,12 @@ import { Pressable, View } from "react-native";
 import { ErrorNote, Guard, useCourseData } from "../components/common";
 import { Page } from "../components/Shell";
 import { Button, Card, Col, Empty, Field, Grid, IconCircle, Input, Meter, Panel, Seg, Skeleton, Tag, Tile, Txt, masteryTone, pct, s } from "../components/ui";
-import { api, openDocument, Question, Quiz, QuizMode, QuizResult, QuizReview, Source, sourceDocId } from "../lib/api";
+import { api, openDocument, Quiz, QuizMode, QuizResult, QuizReview, Source, sourceDocId } from "../lib/api";
 import { useApp, useTheme } from "../lib/store";
 import { ICON, palette, radius, tint } from "../lib/theme";
 
 const LETTERS = ["A", "B", "C", "D"];
 const MAX_QUESTIONS = 30;
-const DIFF: Record<Question["difficulty"], { label: string; tone: "ok" | "warn" | "bad" }> = {
-  facil: { label: "Fácil", tone: "ok" },
-  media: { label: "Média", tone: "warn" },
-  dificil: { label: "Difícil", tone: "bad" },
-};
 
 function SourceList({ sources }: { sources: Source[] }) {
   const t = useTheme();
@@ -257,10 +252,7 @@ function Play({ quiz, onDone, onCancel }: { quiz: Quiz; onDone: (r: QuizResult) 
         <Txt size={12} tone={3} tabular>
           Questão {i + 1} de {quiz.questions.length}
         </Txt>
-        <View style={s.row}>
-          <Tag label={q.topic} tone="info" />
-          <Tag label={DIFF[q.difficulty].label} tone={DIFF[q.difficulty].tone} dot />
-        </View>
+        <Tag label={q.topic} tone="info" />
       </View>
       <Meter value={(Object.keys(answers).length || 0) / quiz.questions.length} color={palette.accent} />
       <Txt size={16} weight="semibold" style={{ lineHeight: 24 }}>
