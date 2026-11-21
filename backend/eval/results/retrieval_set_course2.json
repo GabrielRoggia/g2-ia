@@ -1,0 +1,162 @@
+[
+  {
+    "chunk_id": "16-54",
+    "question": "Quais elementos precisam ser versionados em um projeto de aprendizado de máquina, além do código-fonte como no Git?"
+  },
+  {
+    "chunk_id": "6-31",
+    "question": "Por que um modelo de visão computacional treinado para reconhecer mil tipos de objetos pode ser reaproveitado para outras tarefas, como identificar doenças em folhas ou defeitos em peças, e qual parte da rede é realmente específica da tarefa?"
+  },
+  {
+    "chunk_id": "4-27",
+    "question": "Quais são as vantagens, os exemplos de aplicação e as desvantagens de usar GraphRAG em sistemas de recuperação de informação?"
+  },
+  {
+    "chunk_id": "10-32",
+    "question": "Como montar um mini dataset em JSON com pares de instrução e resposta sobre a disciplina de IA II, e por que o Qwen seria preferível ao SmolLM para esse conteúdo em português?"
+  },
+  {
+    "chunk_id": "10-15",
+    "question": "Por que rodar um modelo de linguagem pequeno localmente ajuda a proteger a privacidade dos dados, e em quais áreas essa vantagem é mais relevante?"
+  },
+  {
+    "chunk_id": "8-36",
+    "question": "Por que as derivadas são indispensáveis para que uma rede neural consiga aprender e ajustar seus pesos?"
+  },
+  {
+    "chunk_id": "7-20",
+    "question": "Como funciona a equação de um neurônio artificial e qual o papel da função de ativação, por exemplo a ReLU, ao transformar o resultado da soma ponderada em saída?"
+  },
+  {
+    "chunk_id": "6-16",
+    "question": "Quais são as etapas do transfer learning, desde o pré-treinamento em um grande conjunto de dados até o ajuste fino para uma nova tarefa?"
+  },
+  {
+    "chunk_id": "15-57",
+    "question": "Por que uma árvore de decisão pode deixar de usar uma das variáveis, como horas_livres, e construir o modelo apenas com a idade?"
+  },
+  {
+    "chunk_id": "6-5",
+    "question": "Quais são as principais categorias de hiperparâmetros em redes neurais (estruturais, de otimização, de regularização e de dados), com exemplos de cada uma e o impacto que exercem no modelo?"
+  },
+  {
+    "chunk_id": "16-4",
+    "question": "Quais interesses e expectativas os participantes têm sobre aprender inteligência artificial, como redes neurais, agentes autônomos, classificação de dados e modelos de predição com machine learning?"
+  },
+  {
+    "chunk_id": "13-17",
+    "question": "Quando eu uso validação cruzada (k-fold) para escolher hiperparâmetros, ainda preciso de um conjunto de validação separado? Como fica o fluxo de divisão entre treino e teste nesse caso?"
+  },
+  {
+    "chunk_id": "4-34",
+    "question": "Como o MCP pode ser usado para expor etapas do RAG como ferramentas que o LLM orquestra, e em que situações essa abordagem é indicada, como na ingestão automática de documentos ou na modularização do pipeline?"
+  },
+  {
+    "chunk_id": "4-33",
+    "question": "Qual é o papel do MCP em um sistema com RAG, e em que situações ele deve ser usado, considerando que não executa o RAG, mas facilita o acesso a fontes internas como arquivos, bancos de dados, documentos, planilhas e APIs?"
+  },
+  {
+    "chunk_id": "6-9",
+    "question": "O que é fine-tuning em modelos de IA e por que vale a pena usá-lo em vez de treinar um modelo do zero?"
+  },
+  {
+    "chunk_id": "8-29",
+    "question": "Como interpretar a comparação entre o erro de treino e o erro de validação para diagnosticar overfitting, underfitting ou bom ajuste, e que ajuste na regularização fazer em cada caso?"
+  },
+  {
+    "chunk_id": "10-1",
+    "question": "Quais são as diferenças entre o aprendizado de máquina clássico e os modelos de linguagem quanto aos algoritmos, ao tipo de dados e ao objetivo?"
+  },
+  {
+    "chunk_id": "15-24",
+    "question": "Como são usados os atributos (features) em um modelo de classificação de e-mails como spam ou não spam, e que exemplos de atributos podem ser extraídos do texto?"
+  },
+  {
+    "chunk_id": "16-11",
+    "question": "Quais assuntos da disciplina de Inteligência Artificial I os alunos mais apreciaram e pretendem aplicar ou aprofundar em Inteligência Artificial II?"
+  },
+  {
+    "chunk_id": "4-30",
+    "question": "Quais capacidades um sistema de Agentic RAG oferece (como validar fontes, resolver conflitos, raciocinar em várias etapas e buscar na internet) e quais são os principais desafios e desvantagens dessa abordagem?"
+  },
+  {
+    "chunk_id": "15-70",
+    "question": "Qual é a ideia central do SVM e como o uso de kernels permite lidar com dados que não são linearmente separáveis, em que cenários ele funciona bem?"
+  },
+  {
+    "chunk_id": "8-18",
+    "question": "Quais são as vantagens e a desvantagem de usar o erro absoluto médio (MAE) como função de custo em problemas de regressão com redes neurais, em comparação com outras alternativas?"
+  },
+  {
+    "chunk_id": "16-60",
+    "question": "O que são nós (nodes) no n8n e como eles se combinam para formar um workflow que automatiza um processo?"
+  },
+  {
+    "chunk_id": "13-15",
+    "question": "Como funciona a divisão do conjunto de dados em treino, validação e teste (por exemplo 70/15/15), qual é o papel de cada parte e em que situações essa estratégia é indicada em vez de usar validação cruzada?"
+  },
+  {
+    "chunk_id": "8-32",
+    "question": "Qual é o papel dos pesos e do viés na previsão de um modelo, e o que o algoritmo faz com os pesos durante o treinamento?"
+  },
+  {
+    "chunk_id": "13-34",
+    "question": "Como interpretar o gráfico de desempenho do modelo em função da quantidade de dados de treino para diagnosticar se ele sofre de underfitting ou overfitting?"
+  },
+  {
+    "chunk_id": "16-3",
+    "question": "Quais são as expectativas e os temas que os alunos esperam estudar na disciplina de Inteligência Artificial II, como machine learning, redes neurais, agentes e aplicações práticas no trabalho e no mercado?"
+  },
+  {
+    "chunk_id": "11-2",
+    "question": "Por que não basta olhar o gráfico para saber se um agrupamento é bom, e quais critérios objetivos devem ser medidos ao avaliar clusters sem ter rótulos corretos?"
+  },
+  {
+    "chunk_id": "4-8",
+    "question": "O que é o corpus em um sistema RAG e por que ele é tão importante para o funcionamento desse sistema?"
+  },
+  {
+    "chunk_id": "7-32",
+    "question": "O que define uma rede neural feedforward e quais arquiteturas, como Perceptron Simples, MLP e CNNs, se enquadram nessa categoria?"
+  },
+  {
+    "chunk_id": "12-11",
+    "question": "Como o LIME gera, na prática, os dados perturbados ao redor de um passageiro específico, e como se garante que esses dados fiquem dentro dos limites do conjunto de treino?"
+  },
+  {
+    "chunk_id": "7-30",
+    "question": "Como o deep learning usa várias camadas para aprender representações automaticamente, e como cada camada torna as entradas mais abstratas, por exemplo, indo de pixels a bordas, formas e objetos?"
+  },
+  {
+    "chunk_id": "8-28",
+    "question": "O que acontece com um modelo de redes neurais quando a regularização é inexistente, leve ou excessiva, e por que é preciso buscar um equilíbrio?"
+  },
+  {
+    "chunk_id": "12-9",
+    "question": "Qual é o primeiro passo do LIME e como se faz, em código, para treinar um Random Forest e selecionar uma instância do conjunto de teste cuja previsão e probabilidade de sobrevivência serão explicadas?"
+  },
+  {
+    "chunk_id": "12-39",
+    "question": "Como funciona o algoritmo K-means para agrupar dados, qual é a ideia por trás dele e quais são suas principais limitações?"
+  },
+  {
+    "chunk_id": "6-12",
+    "question": "O que é PEFT e por que essa abordagem surgiu como alternativa ao ajuste fino tradicional em LLMs e foundation models?"
+  },
+  {
+    "chunk_id": "12-22",
+    "question": "Como o SHAP explica uma previsão individual de um modelo, e o que representam o valor base e os valores SHAP nessa decomposição?"
+  },
+  {
+    "chunk_id": "12-14",
+    "question": "Como o LIME dá mais importância às amostras perturbadas que estão mais perto da instância original, e como isso é calculado no código (distância do cosseno e kernel exponencial com largura baseada no número de atributos)?"
+  },
+  {
+    "chunk_id": "16-13",
+    "question": "Quais áreas de aplicação da IA despertam mais interesse entre os alunos da turma de Inteligência Artificial II, e qual delas aparece com mais frequência nas respostas?"
+  },
+  {
+    "chunk_id": "10-26",
+    "question": "Como é possível adaptar um modelo de linguagem pequeno a uma tarefa específica usando poucos exemplos e pouco custo computacional, e quais são as etapas desse processo com LoRA?"
+  }
+]
