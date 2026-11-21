@@ -1,236 +1,104 @@
-# Revisa AI: tutor de estudos com RAG
+# Revisa AI
 
-Trabalho 2 de Inteligência Artificial II (AMF, 2026/02). **Modalidade 3: integração com IA em contexto avançado** (RAG, API de LLM e servidor MCP).
+Tutor de estudos com RAG, desenvolvido para o Trabalho 2 de Inteligência Artificial II (AMF, 2026/02), na **modalidade 3: integração com IA em contexto avançado**.
 
-O aluno envia os slides e PDFs de uma disciplina. O Revisa AI gera quizzes de múltipla escolha **a partir desse material**, corrige, explica cada erro citando a página de origem, descobre os tópicos em que o aluno está mais fraco e direciona os próximos quizzes para eles.
+## Problema
 
----
+Na semana de prova, o aluno tem muitos PDFs e slides e não sabe o que já domina. Reler tudo é lento, criar perguntas à mão toma tempo, e um chat genérico pode responder com conteúdo diferente do que foi ensinado na disciplina.
 
-## 1. O problema
+## Solução
 
-Na semana de prova, o aluno tem dezenas de PDFs e slides e não sabe o que já domina.
+O aluno envia o material da disciplina e o Revisa AI:
 
-- Reler tudo é lento e passivo, e a técnica de estudo mais eficaz é a **prática de recuperação** (testar-se).
-- Montar perguntas à mão toma horas, e as que existem na internet não seguem o material do professor.
-- Chatbots genéricos respondem com conhecimento de fora da disciplina e às vezes inventam.
+- gera quizzes de múltipla escolha a partir desse material;
+- corrige as respostas e explica cada questão;
+- mostra o documento e a página de origem;
+- identifica os tópicos mais fracos e direciona os próximos quizzes;
+- responde dúvidas com base nos documentos enviados.
 
-## 2. A solução
+## Como funciona
 
-| Etapa | O que acontece | Técnica de IA |
-|---|---|---|
-| Envio do material | PDF, PPTX, TXT ou MD é dividido em trechos com página de origem | Chunking com sobreposição |
-| Indexação | Cada trecho vira um vetor e também entra num índice lexical | Embeddings multilíngues + BM25 |
-| Tópicos | A IA lê uma amostra do material e lista de 4 a 12 tópicos | LLM com saída estruturada |
-| Quiz | Para cada tópico escolhido, busca os trechos mais relevantes e gera questões só com eles | **RAG** com busca híbrida (RRF) |
-| Correção | Mostra a alternativa certa, a explicação e o trecho-fonte | Citação da fonte |
-| Diagnóstico | Calcula o domínio por tópico e prioriza os mais fracos no modo adaptativo | Suavização de Laplace |
-| Perguntar | Responde dúvidas livres só com o material, citando [1], [2]... | RAG |
-| MCP | As mesmas funções ficam disponíveis para qualquer agente via MCP | FastMCP |
+1. **Ingestão:** o texto de PDFs, PPTX, TXT e MD é extraído e dividido em trechos, guardando documento e página.
+2. **Indexação:** cada trecho vira um embedding salvo no ChromaDB e também é usado na busca por palavras (BM25).
+3. **Recuperação:** a busca vetorial e o BM25 são combinados com Reciprocal Rank Fusion (RRF).
+4. **Geração:** o modelo recebe os trechos recuperados e devolve as questões em JSON.
+5. **Validação:** o backend descarta questões inválidas ou repetidas, filtra fontes inexistentes e embaralha as alternativas.
+6. **Correção e diagnóstico:** o backend corrige sem usar IA e calcula o domínio por tópico com `(acertos + 1) / (respondidas + 2)`.
 
-**Valor gerado:** estudo ativo em minutos, fiel ao conteúdo do professor, com feedback imediato e foco no que o aluno mais precisa.
+## Tecnologias
 
-## 3. Arquitetura
+- **App:** React Native, Expo e Expo Router
+- **Backend:** Python e FastAPI
+- **RAG:** ChromaDB, BM25 e `paraphrase-multilingual-MiniLM-L12-v2`
+- **Modelos:** Ollama, Claude Code ou API do Claude, escolhidos na tela de Configurações
+- **Dados:** SQLite
+- **Integração opcional:** servidor MCP com FastMCP
 
-```mermaid
-flowchart LR
-    subgraph App["App (React Native + Expo)"]
-        P[Painel] --- M[Materiais] --- Q[Quiz] --- A[Perguntar]
-    end
-    App -- HTTP/JSON --> API[FastAPI]
-    MCPc[Cliente MCP<br/>ex.: Claude Desktop] -- stdio --> MCP[Servidor FastMCP]
-    API --> T[Tutor<br/>tópicos, quiz, correção, diagnóstico]
-    MCP --> T
-    T --> R[Busca híbrida<br/>RRF]
-    R --> V[(ChromaDB<br/>embeddings)]
-    R --> B[(BM25)]
-    T --> L{LLM<br/>saída estruturada}
-    L --> O[Ollama<br/>local]
-    L --> CC[Claude Code<br/>assinatura]
-    L --> CA[API do Claude]
-    T --> S[(SQLite<br/>respostas e desempenho)]
-    M -. upload .-> I[Ingestão<br/>pypdf / python-pptx] --> V
+## Como executar
+
+Pré-requisitos: Python 3.11+, Node 20+ e um provedor de IA.
+
+### 1. Provedor de IA
+
+Para usar o modelo local, instale o [Ollama](https://ollama.com) e baixe o modelo:
+
+```powershell
+ollama pull qwen2.5:3b
 ```
 
-### Detalhes técnicos
+Também é possível usar o Claude Code com `claude auth login` ou a API do Claude com `ANTHROPIC_API_KEY` em `backend/.env`.
 
-- **Embeddings:** `paraphrase-multilingual-MiniLM-L12-v2` rodando localmente via ONNX (`fastembed`), sem GPU. Bom para português.
-- **Busca híbrida:** a busca vetorial entende paráfrases; o BM25 acerta termos exatos ("ReLU", "LSTM", siglas). Os dois rankings são combinados por **Reciprocal Rank Fusion**: `score = Σ 1 / (60 + posição)`.
-- **LLM com três provedores**, escolhidos na tela **Configurações** do app:
-
-  | Provedor | Como funciona | Custo |
-  |---|---|---|
-  | **Ollama** (padrão) | Modelo aberto (ex.: `qwen2.5:3b`) rodando no próprio computador, via API local do Ollama | Grátis, offline |
-  | **Claude Code** | O backend executa `claude -p --output-format json --json-schema ...`, que usa o login da assinatura do Claude no computador | Limite da assinatura (uso pessoal) |
-  | **API do Claude** | SDK oficial (`claude-opus-5-5`) com `ANTHROPIC_API_KEY` | Por uso |
-
-  Nos três casos a saída é **estruturada**: o backend envia o JSON Schema gerado pelo Pydantic e valida a resposta com o mesmo modelo. Se um modelo local errar o formato, o sistema tenta mais uma vez. O resto do sistema não sabe qual provedor respondeu.
-- **Controles contra alucinação:**
-  - o prompt proíbe conhecimento externo;
-  - cada questão informa os IDs dos trechos usados, e IDs inventados são descartados;
-  - questões malformadas (sem 4 alternativas ou com gabarito inválido) são descartadas;
-  - as alternativas são **embaralhadas no servidor**, porque LLMs tendem a pôr a correta sempre na mesma letra;
-  - o gabarito só é enviado ao app depois da resposta.
-- **Modo adaptativo:** o domínio de cada tópico é `(acertos + 1) / (respondidas + 2)`. Um tópico nunca respondido fica em 50%, e um único erro não zera o tópico. O quiz adaptativo usa os 3 tópicos de menor domínio.
-
-## 4. Estrutura do repositório
-
-```
-backend/
-  app/
-    config.py      configurações (.env)
-    ingest.py      extração de texto (PDF/PPTX/TXT) e divisão em trechos
-    store.py       ChromaDB + BM25 + fusão RRF
-    llm.py         cliente do Claude com saída estruturada
-    tutor.py       tópicos, quiz, correção, diagnóstico, perguntas
-    db.py          SQLite
-    main.py        API FastAPI
-  mcp_server.py    servidor MCP (FastMCP)
-  eval/run_eval.py avaliação de recuperação e de qualidade das questões
-  tests/test_flow.py teste de ponta a ponta (LLM simulado, roda offline)
-frontend/          app React Native (Expo Router), roda em Android, iOS e web
-  src/app/         telas: Painel, Materiais, Quiz, Perguntar
-  src/components/  shell, componentes visuais, painel lateral
-  src/lib/         tema, cliente da API, estado global
-sample_data/       material de exemplo (redes neurais)
-docs/              prints e gráficos para o README
-```
-
-## 5. Como executar
-
-Pré-requisitos: **Python 3.11+**, **Node 20+** e **um** dos provedores de IA abaixo.
-
-### Provedor de IA (escolha um)
-
-- **Ollama (recomendado, grátis):** instale em [ollama.com](https://ollama.com), deixe o aplicativo aberto e baixe o modelo:
-  ```powershell
-  ollama pull qwen2.5:3b
-  ```
-  Com 4 GB de GPU, o `qwen2.5:3b` cabe inteiro na placa. O `qwen2.5:7b` gera questões melhores, porém mais devagar.
-- **Claude Code (assinatura):** com o Claude Code instalado, rode `claude auth login` uma vez. O executável é detectado sozinho, inclusive o que vem junto com o app desktop do Claude.
-- **API do Claude:** coloque a `ANTHROPIC_API_KEY` em `backend/.env`.
-
-Depois, no app, abra **Configurações**, escolha o provedor e clique em **Testar conexão**.
-
-### Backend
+### 2. Backend
 
 ```powershell
 cd backend
 py -3.11 -m venv .venv
-.venv\Scripts\Activate.ps1
-pip install -r requirements.txt
-copy .env.example .env      # só precisa editar se for usar a API do Claude
-uvicorn app.main:app --port 8000
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+copy .env.example .env
+.\.venv\Scripts\python.exe -m uvicorn app.main:app --port 8000
 ```
 
-A documentação interativa da API fica em http://localhost:8000/docs. Na primeira execução, o modelo de embeddings (~120 MB) é baixado automaticamente.
+### 3. App
 
-### Frontend
+Em outro terminal:
 
 ```powershell
 cd frontend
 npm install
-npx expo start --web        # abre no navegador
+npx expo start --web --port 8081
 ```
 
-- **Celular:** rode `npx expo start`, abra o app **Expo Go** e leia o QR code. Crie `frontend/.env` com `EXPO_PUBLIC_API_URL=http://<IP-da-sua-máquina>:8000` e suba o backend com `--host 0.0.0.0`.
-- **Emulador Android:** já usa `http://10.0.2.2:8000` por padrão.
+Acesse http://localhost:8081, abra **Configurações**, escolha o modelo e clique em **Testar conexão**.
 
-### Servidor MCP (opcional)
+### 4. Uso
+
+1. Em **Materiais**, crie uma disciplina e envie os arquivos. Para testar, use `sample_data/redes_neurais.md`.
+2. Em **Quiz**, escolha o modo e a quantidade de questões.
+3. Responda e confira as explicações e as fontes.
+4. No **Painel**, acompanhe o histórico e treine os pontos fracos.
+
+## Testes e avaliação
 
 ```powershell
 cd backend
-.venv\Scripts\python mcp_server.py
+.\.venv\Scripts\python.exe -m tests.test_flow
+.\.venv\Scripts\python.exe -m eval.run_eval retrieval --course <id> --samples 40
+.\.venv\Scripts\python.exe -m eval.run_eval quiz --course <id> --quizzes 4 --per-quiz 5
 ```
 
-Ferramentas expostas: `listar_disciplinas`, `listar_topicos`, `buscar_no_material`, `gerar_quiz`, `desempenho_do_aluno` e `perguntar_ao_material`. Exemplo de configuração no Claude Desktop (`claude_desktop_config.json`):
+Resultados com as 12 aulas de IA II e o Claude Sonnet:
 
-```json
-{
-  "mcpServers": {
-    "revisa-ai": {
-      "command": "C:\\caminho\\g2-ia\\backend\\.venv\\Scripts\\python.exe",
-      "args": ["C:\\caminho\\g2-ia\\backend\\mcp_server.py"]
-    }
-  }
-}
-```
+| Busca (40 perguntas) | Hit@1 | Hit@5 | MRR |
+|---|---|---|---|
+| Vetorial | 52,5% | 75,0% | 0,609 |
+| BM25 | 67,5% | 95,0% | 0,765 |
+| Híbrida (usada no app) | 62,5% | 87,5% | 0,725 |
 
-### Passo a passo de uso
+Em uma amostra de 20 questões, o avaliador automático aprovou todas quanto a gabarito, fidelidade ao material e clareza, e deu nota média de 3,1 de 5 às alternativas erradas. Essa amostra foi medida antes do ajuste no tamanho dos trechos. Como o mesmo modelo gerou e avaliou as questões, o resultado é otimista. Os gráficos e dados brutos estão em [`backend/eval/results`](backend/eval/results).
 
-1. Em **Materiais**, crie a disciplina e envie os PDFs ou slides. Para testar, use `sample_data/redes_neurais.md`.
-2. Em **Quiz**, escolha o modo **Misto** e gere o primeiro quiz.
-3. Responda, veja as explicações e abra os trechos-fonte.
-4. O **Painel** mostra o domínio por tópico e os pontos fracos; **Treinar pontos fracos** gera um quiz adaptativo.
-5. Em **Perguntar**, tire dúvidas livres com citação das páginas.
+## Próximos passos
 
-## 6. Avaliação
-
-### Teste automatizado (offline)
-
-```powershell
-cd backend
-.venv\Scripts\python -m tests.test_flow
-```
-
-Verifica ingestão, busca híbrida, descarte de questões inválidas, embaralhamento do gabarito, filtro de fontes inventadas, correção, cálculo de pontos fracos e prioridade do modo adaptativo. O LLM é simulado, então o teste não gasta créditos.
-
-### Métricas (exigem um provedor de IA configurado e um material enviado)
-
-As métricas usam o provedor escolhido nas Configurações. Vale rodar com o Ollama e com o Claude e comparar a qualidade das questões no README.
-
-```powershell
-cd backend
-.venv\Scripts\python -m eval.run_eval retrieval --course 1 --samples 40
-.venv\Scripts\python -m eval.run_eval quiz --course 1 --quizzes 4 --per-quiz 5
-```
-
-1. **Recuperação (vetorial × BM25 × híbrida):** para cada trecho sorteado, o LLM escreve uma pergunta que só aquele trecho responde. Medimos **Hit@1**, **Hit@5** e **MRR** em cada modo de busca. O resultado vai para `eval/results/retrieval.png`.
-2. **Qualidade das questões (LLM-as-judge):** um avaliador com critérios fixos verifica se o gabarito está correto, se a questão é fiel ao material, se não é ambígua e se os distratores são plausíveis. O resultado vai para `eval/results/quiz_quality.png`, e o `quiz_review.csv` serve para a revisão humana do grupo.
-
-Troque `--course 1` pelo id da disciplina avaliada.
-
-### Resultados
-
-Avaliação feita em 21/11/2026 com o material real de IA II (12 PDFs), usando o Claude Sonnet via Claude Code. Os arquivos brutos estão em `backend/eval/results/`.
-
-**Recuperação (40 perguntas, top 5, acerto por documento e página)**
-
-O modelo de embeddings lê no máximo 128 tokens. Com trechos de até 900 caracteres, 29% deles passavam desse limite e tinham o final ignorado no vetor. Os trechos passaram a ser medidos em tokens (até 120), e a disciplina foi de 558 para 681 trechos.
-
-| Modo de busca | Hit@1 antes | Hit@1 depois | Hit@5 antes | Hit@5 depois | MRR antes | MRR depois |
-|---|---|---|---|---|---|---|
-| Vetorial | 52,5% | 52,5% | 77,5% | 75,0% | 0,618 | 0,609 |
-| BM25 | 67,5% | 67,5% | 92,5% | 95,0% | 0,776 | 0,765 |
-| Híbrida (RRF, usada no app) | 67,5% | 62,5% | 90,0% | 87,5% | 0,761 | 0,725 |
-
-![Recuperação por modo de busca](backend/eval/results/retrieval.png)
-
-- A correção garante que todo o texto entre no vetor, mas **não melhorou as métricas**. As variações equivalem a no máximo 2 perguntas em 40, pequenas demais para concluir melhora ou piora.
-- A busca só vetorial segue atrás, e o corte dos trechos longos não explica essa diferença.
-- BM25 e híbrida ficaram próximos, sem amostra suficiente para apontar um vencedor.
-- **Limitações:** as perguntas foram escritas pelo LLM a partir dos trechos antigos, o que pode favorecer a divisão anterior e o BM25, por repetir palavras do texto. Perguntas reais de alunos podem mudar esse resultado.
-
-**Qualidade das questões (20 questões, 4 quizzes, medida antes da nova divisão em trechos)**
-
-| Critério | Resultado |
-|---|---|
-| Gabarito correto | 20 de 20 |
-| Fiel ao material | 20 de 20 |
-| Sem ambiguidade | 20 de 20 |
-| Plausibilidade dos distratores | 3,1 de 5 |
-
-![Qualidade das questões](backend/eval/results/quiz_quality.png)
-
-- O ponto mais fraco são os distratores: as alternativas erradas ainda podem ficar mais convincentes.
-- **Limitação:** o mesmo modelo gerou e avaliou as questões, então os 100% são uma verificação automática otimista, não uma prova de qualidade. A amostra também é pequena. A coluna `revisao_humana_ok` de `quiz_review.csv` existe para a conferência manual do grupo.
-- Estes números valem para o Claude Sonnet. O modelo local `qwen2.5:3b` não foi medido por este script; em um teste informal, ele gerou questões ambíguas e com tópico errado.
-
-## 7. Impacto e próximos passos
-
-- **Uso real:** qualquer disciplina, qualquer aluno. O professor também pode usar para montar listas de exercícios a partir do próprio material.
-- **Escalabilidade:** trocar SQLite por PostgreSQL e ChromaDB local por um servidor vetorial; adicionar login por aluno.
-- **Melhorias:**
-  - repetição espaçada (revisar o tópico no dia certo);
-  - OCR para PDFs escaneados;
-  - questões discursivas corrigidas por IA;
-  - turma compartilhada, em que o professor vê os tópicos mais errados pela turma toda.
+- Repetição espaçada
+- OCR para PDFs escaneados
+- Questões discursivas
+- Visão do professor com os tópicos mais errados pela turma
